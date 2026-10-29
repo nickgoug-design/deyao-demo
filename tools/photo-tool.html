@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Εργαλείο προσθήκης φωτογραφιών – ΔΕΥΑΟ demo</title>
+<style>
+body{font:17px/1.6 "Segoe UI",Arial,sans-serif;margin:0;color:#14303f;background:#f2f9fd}
+.w{max-width:900px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:28px;margin:0 0 6px;color:#08263b}h2{font-size:20px;margin:28px 0 8px;color:#08263b}
+.box{background:#fff;border:1px solid #d6e7f1;border-radius:14px;padding:20px;margin:14px 0}
+button,.btn{background:#0b6a99;color:#fff;border:0;border-radius:10px;padding:12px 22px;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+input[type=text]{width:100%;padding:8px 10px;border:2px solid #d6e7f1;border-radius:8px;font:inherit}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #d6e7f1;text-align:left;vertical-align:middle}
+.bar{height:16px;background:#d6e7f1;border-radius:8px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;width:0;background:#4be892}
+.ok{background:#e0f8ea;color:#0a5a35;border-radius:10px;padding:12px 16px;font-weight:600}.err{background:#ffe3e3;color:#8a1616;border-radius:10px;padding:12px 16px}
+small{color:#51697a}ol li{margin:6px 0}
+</style></head><body><div class="w">
+<h1>Εργαλείο προσθήκης φωτογραφιών</h1>
+<p>Τρέχει στον υπολογιστή σου, στον browser. Οι φωτογραφίες δεν στέλνονται πουθενά. Φτιάχνει ένα πακέτο που βάζεις μέσα στο site.</p>
+<div class="box"><h2 style="margin-top:0">Πώς δουλεύει</h2><ol>
+<li>Βάλε τις φωτογραφίες σε έναν φάκελο. <b>Κάθε υποφάκελος = μία κατηγορία</b> και το όνομά του γίνεται όνομα κατηγορίας. Π.χ. <code>Φωτογραφίες\Συλλεκτικές φωτογραφίες της Ορεστιάδας\*.jpg</code>.</li>
+<li>Πάτα «Επιλογή φακέλου» και διάλεξε τον κεντρικό φάκελο (αυτόν που περιέχει τους υποφακέλους).</li>
+<li>Έλεγξε και διόρθωσε τα ονόματα των κατηγοριών στον πίνακα.</li>
+<li>Πάτα «Δημιουργία πακέτου». Θα κατέβει το αρχείο <b>photos-update.zip</b>.</li>
+<li>Άνοιξε το zip και αντέγραψε τον φάκελο <b>photos</b> μέσα στον φάκελο του site (<code>DEYAO_site_demo</code>), πατώντας «Αντικατάσταση». Οι υπάρχουσες φωτογραφίες μένουν και οι νέες προστίθενται.</li></ol>
+<p><small>Οι τίτλοι των φωτογραφιών προέρχονται από το όνομα του αρχείου (αν είναι κανονικό όνομα και όχι π.χ. IMG_1234). Όσες δεν έχουν όνομα εμφανίζονται με το όνομα της κατηγορίας.</small></p></div>
+
+<div class="box"><input id="f" type="file" webkitdirectory directory multiple style="display:none">
+<button id="pick" type="button">Επιλογή φακέλου</button> <span id="msg"></span>
+<div id="cats" style="margin-top:14px"></div>
+<label style="display:block;margin:12px 0"><input type="checkbox" id="ft" checked> Χρήση ονόματος αρχείου ως τίτλο φωτογραφίας (όταν είναι πραγματικό όνομα)</label>
+<button id="go" type="button" disabled>Δημιουργία πακέτου</button>
+<div class="bar" id="bar" style="display:none"><i id="bi"></i></div><div id="st"></div></div>
+<p><small>Δουλεύει σε Firefox και Chrome. Για πάνω από ~300 φωτογραφίες, τρέξε το εργαλείο σε δύο φορές (δύο φάκελοι).</small></p>
+</div>
+<script src="jszip.min.js"></script>
+<script src="../photos/photos.js"></script>
+<script>
+var $=function(s){return document.querySelector(s)};
+var EXIST=(window.PHOTOS||[]);var groups={};var MAXL=1800,MAXT=640;
+function slug(t){var m={α:'a',β:'v',γ:'g',δ:'d',ε:'e',ζ:'z',η:'i',θ:'th',ι:'i',κ:'k',λ:'l',μ:'m',ν:'n',ξ:'x',ο:'o',π:'p',ρ:'r',σ:'s',ς:'s',τ:'t',υ:'y',φ:'f',χ:'ch',ψ:'ps',ω:'o'};
+ var x=t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');var o='';for(var i=0;i<x.length;i++){var c=x[i];o+=m[c]!==undefined?m[c]:(/[a-z0-9]/.test(c)?c:'-')}
+ o=o.replace(/-+/g,'-').replace(/^-|-$/g,'');return o||'kat'}
+function title(name){var b=name.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').trim();
+ if(/^(img|dsc|dscn|dscf|dji|pxl|pic|photo|image|screenshot|wp|p)[-_ ]?\d+/i.test(b)||/^[\d\s.\-]+$/.test(b)||b.length<3)return '';return b}
+$('#pick').onclick=function(){$('#f').click()};
+$('#f').onchange=function(e){groups={};var files=[].slice.call(e.target.files).filter(function(f){return /\.(jpe?g|png|webp)$/i.test(f.name)});
+ files.forEach(function(f){var p=(f.webkitRelativePath||f.name).split('/');var cat=p.length>2?p[1]:p[0];if(p.length<=1)cat='Φωτογραφίες';if(!groups[cat])groups[cat]={label:cat,files:[]};groups[cat].files.push(f)});
+ var keys=Object.keys(groups);keys.forEach(function(k){groups[k].files.sort(function(a,b){return a.name.localeCompare(b.name,'el',{numeric:true})})});
+ if(!keys.length){$('#msg').textContent='Δεν βρέθηκαν φωτογραφίες (jpg, png).';$('#cats').innerHTML='';$('#go').disabled=true;return}
+ $('#msg').textContent='Βρέθηκαν '+files.length+' φωτογραφίες σε '+keys.length+' κατηγορίες.';
+ var h='<table><tr><th>Όνομα κατηγορίας (επεξεργάσιμο)</th><th>Φωτογραφίες</th><th>Παραδείγματα αρχείων</th></tr>';
+ keys.forEach(function(k,i){h+='<tr><td><input type="text" data-k="'+i+'" value="'+k.replace(/"/g,'&quot;')+'"></td><td>'+groups[k].files.length+'</td><td><small>'+groups[k].files.slice(0,3).map(function(f){return f.name}).join(', ')+'</small></td></tr>'});
+ $('#cats').innerHTML=h+'</table>';$('#go').disabled=false;window._keys=keys};
+function load(f){return new Promise(function(res,rej){var u=URL.createObjectURL(f);var im=new Image();im.onload=function(){res([im,u])};im.onerror=function(){URL.revokeObjectURL(u);rej(new Error(f.name))};im.src=u})}
+function scale(im,max,q){var w=im.naturalWidth,h=im.naturalHeight,r=Math.min(1,max/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*r);c.height=Math.round(h*r);var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+ return new Promise(function(res){c.toBlob(res,'image/jpeg',q)})}
+$('#go').onclick=async function(){
+ var keys=window._keys,zip=new JSZip(),data=JSON.parse(JSON.stringify(EXIST)),total=0,done=0,errs=[];
+ keys.forEach(function(k){total+=groups[k].files.length});$('#bar').style.display='block';$('#go').disabled=true;
+ var used={};data.forEach(function(c){used[c.folder]=1});
+ var inputs=document.querySelectorAll('#cats input[data-k]');
+ for(var ci=0;ci<keys.length;ci++){
+  var k=keys[ci],label=inputs[ci].value.trim()||k,g=groups[k];
+  var cat=data.filter(function(c){return c.label===label})[0];
+  if(!cat){var s=slug(label),b=s,n=2;while(used[s]){s=b+'-'+n++}used[s]=1;cat={k:'c'+(data.length+1),label:label,folder:s,items:[]};data.push(cat)}
+  var start=cat.items.length;
+  for(var i=0;i<g.files.length;i++){var f=g.files[i];
+   try{var r=await load(f),im=r[0];var num=String(start+i+1);while(num.length<3)num='0'+num;
+    var big=await scale(im,MAXL,.82),th=await scale(im,MAXT,.8);URL.revokeObjectURL(r[1]);
+    zip.file('photos/'+cat.folder+'/'+num+'.jpg',big,{compression:'STORE'});zip.file('photos/'+cat.folder+'/thumbs/'+num+'.jpg',th,{compression:'STORE'});
+    var t=$('#ft').checked?title(f.name):'';cat.items.push({n:num,t:t,a:t});
+   }catch(e){errs.push(f.name)}
+   done++;$('#bi').style.width=(done*100/total)+'%';$('#st').textContent='Επεξεργασία: '+done+' / '+total;
+   if(done%5===0)await new Promise(function(r){setTimeout(r,0)});
+  }}
+ zip.file('photos/photos.js','window.PHOTOS='+JSON.stringify(data,null,1)+';');
+ $('#st').textContent='Δημιουργία zip…';
+ var blob=await zip.generateAsync({type:'blob',compression:'STORE'});
+ var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='photos-update.zip';document.body.appendChild(a);a.click();
+ $('#st').innerHTML='<div class="ok">Έτοιμο! Κατέβηκε το photos-update.zip ('+done+' φωτογραφίες, '+Math.round(blob.size/1048576)+' MB). Άνοιξέ το και αντέγραψε τον φάκελο photos μέσα στον φάκελο του site, με «Αντικατάσταση».</div>'+(errs.length?'<div class="err">Δεν διαβάστηκαν: '+errs.join(', ')+'</div>':'');
+ $('#go').disabled=false};
+</script></body></html>
