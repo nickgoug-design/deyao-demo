@@ -45,3 +45,8 @@ document.addEventListener('DOMContentLoaded',function(){
  lb.addEventListener('click',function(e){if(e.target===lb)close()});
  document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'))return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')show(cur-1);if(e.key==='ArrowRight')show(cur+1)});
 });
+
+document.addEventListener('DOMContentLoaded',function(){var d=document.getElementById('popup');if(!d||!d.showModal)return;var k='deyaoPopup',seen=false;try{seen=sessionStorage.getItem(k)}catch(e){}if(seen)return;
+ function done(){try{sessionStorage.setItem(k,'1')}catch(e){}d.close()}
+ setTimeout(function(){try{d.showModal()}catch(e){}},1200);
+ document.getElementById('pclose').onclick=done;d.addEventListener('click',function(e){if(e.target===d)done()});d.addEventListener('cancel',function(){try{sessionStorage.setItem(k,'1')}catch(e){}})});

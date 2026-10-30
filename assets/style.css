@@ -203,3 +203,12 @@ details[open] summary::after{content:"−"}details>div{padding:0 20px 18px;color
 .nlist li{display:grid;grid-template-columns:110px auto minmax(0,1fr);gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:6px solid #0aa6b8;border-radius:12px;padding:12px 16px}
 .nlist time{font-weight:800;color:var(--blue-d)}.nlist .tt{font-weight:600}
 @media(max-width:700px){.nlist li{grid-template-columns:1fr;gap:6px}}
+
+.popup{border:0;border-radius:24px;padding:36px 34px 32px;max-width:min(560px,calc(100vw - 32px));width:100%;background:linear-gradient(160deg,#052a47,#0b5d92);color:#fff;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.popup::backdrop{background:rgba(3,20,32,.7);backdrop-filter:blur(3px)}
+.popup h2{margin:0 0 14px;font-size:clamp(24px,5vw,32px);color:#9fdcf7}
+.popup p{font-size:18px;line-height:1.5;margin:0 0 14px;color:#fff}.popup a:not(.btn){color:#4be892;font-weight:800}
+.popup .ph{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}
+.popup .btn{margin-top:10px;background:#fff;color:#052a47}
+.popup .px{position:absolute;right:14px;top:10px;width:44px;height:44px;border:2px solid #9fdcf7;border-radius:50%;background:transparent;color:#fff;font-size:28px;line-height:1;cursor:pointer}
+.popup .px:hover,.popup .px:focus-visible{background:#fff;color:#052a47}
